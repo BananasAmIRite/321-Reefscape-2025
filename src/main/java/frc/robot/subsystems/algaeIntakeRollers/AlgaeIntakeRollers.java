@@ -15,8 +15,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.TunableConstant;
 import java.util.function.Supplier;
 
-/** The same mechanism as algaeIntakeClimb but this controls the rollers instead of the pivot
-    NOTE: + voltage = intake */
+/**
+ * The same mechanism as algaeIntakeClimb but this controls the rollers instead of the pivot NOTE: +
+ * voltage = intake
+ */
 @Logged
 public class AlgaeIntakeRollers extends SubsystemBase {
 
@@ -51,8 +53,10 @@ public class AlgaeIntakeRollers extends SubsystemBase {
     feedForward = new SimpleMotorFeedforward(0, config.kV());
   }
 
-    /** Tune PID and feedforward constants(kP, kI, kD, kG) live on SmartDashboard
-        so that we dont have to re-run the code every time we change one of them. */
+  /**
+   * Tune PID and feedforward constants(kP, kI, kD, kG) live on SmartDashboard so that we dont have
+   * to re-run the code every time we change one of them.
+   */
   public Command tune() {
     TunableConstant kP = new TunableConstant("/AlgaeIntakeRollers/kP", config.kP());
     TunableConstant kI = new TunableConstant("/AlgaeIntakeRollers/kI", config.kI());
@@ -110,7 +114,11 @@ public class AlgaeIntakeRollers extends SubsystemBase {
         });
   }
 
-  @Override // updates inputs constantly 
+  public boolean hasAlgae() {
+    return inputs.hasAlgae;
+  }
+
+  @Override // updates inputs constatly
   public void periodic() {
     io.updateInputs(inputs);
   }

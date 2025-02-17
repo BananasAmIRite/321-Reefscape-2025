@@ -3,7 +3,7 @@ package frc.robot.subsystems.coralendeffector;
 
 import edu.wpi.first.epilogue.Logged;
 
-/* PID Feedforward Configuration for the coral end effector; each IO implementation will have their own 
+/* PID Feedforward Configuration for the coral end effector; each IO implementation will have their own
 PIDFF config:
     kP - Proportion constant for the PID config
     kI - Integral constant for the PID config

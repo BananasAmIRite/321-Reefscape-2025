@@ -4,7 +4,6 @@ package frc.robot.commands;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meter;
 
-import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -15,7 +14,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotConstants;
 import frc.robot.subsystems.drivetrain.SwerveDrive;
-import frc.robot.util.MyAlliance;
+import frc.robot.util.AprilTagUtil;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,28 +26,28 @@ public class StationAlign {
   public static final Map<Integer, Pose2d> stationPoses = new HashMap<>();
 
   private static final Distance kStationDistance = Inches.of(14);
-  private static final Rotation2d kStationAlignmentRotation = Rotation2d.fromDegrees(90);
+  private static final Rotation2d kStationAlignmentRotation = Rotation2d.kZero;
+
+  private static final Transform2d kStationAlignTransform =
+      new Transform2d(kStationDistance, Meter.zero(), kStationAlignmentRotation);
 
   private static final List<Integer> blueStationTagIDs = List.of(12, 13);
   private static final List<Integer> redStationTagIDs = List.of(1, 2);
 
-  private static final List<AprilTag> blueStationTags =
-      RobotConstants.kAprilTagFieldLayout.getTags().stream()
-          .filter(tag -> blueStationTagIDs.contains(tag.ID))
-          .toList();
-  private static final List<AprilTag> redStationTags =
-      RobotConstants.kAprilTagFieldLayout.getTags().stream()
-          .filter(tag -> redStationTagIDs.contains(tag.ID))
-          .toList();
+  private static final List<Pose2d> blueStationTags = AprilTagUtil.tagIDsToPoses(blueStationTagIDs);
+  private static final List<Pose2d> redStationTags = AprilTagUtil.tagIDsToPoses(redStationTagIDs);
 
   /**
-   * This method is run during Robot#autonomousInit() and Robot#teleopInit() to save computations,
-   * only the station poses are loaded
+   * This method is run when DriverStation connects to save computations mid-match, only the station
+   * poses are loaded
    */
   public static void loadStationAlignmentPoses() {
-    List<Integer> stationTagIds = MyAlliance.isRed() ? redStationTagIDs : blueStationTagIDs;
-    for (Integer id : stationTagIds) {
-      stationPoses.computeIfAbsent(id, StationAlign::getNearestCenterAlign);
+    for (int i = 0; i < blueStationTagIDs.size(); i++) {
+      int blueStationID = blueStationTagIDs.get(i);
+      int redStationID = redStationTagIDs.get(i);
+
+      stationPoses.computeIfAbsent(blueStationID, StationAlign::getNearestCenterAlign);
+      stationPoses.computeIfAbsent(redStationID, StationAlign::getNearestCenterAlign);
     }
   }
 
@@ -64,10 +63,10 @@ public class StationAlign {
 
     if (alliance.isEmpty()) return null;
 
-    List<AprilTag> stationTags =
+    List<Pose2d> stationTagPoses =
         alliance.get().equals(Alliance.Red) ? redStationTags : blueStationTags;
 
-    return robotPose.nearest(stationTags.stream().map(tag -> tag.pose.toPose2d()).toList());
+    return robotPose.nearest(stationTagPoses);
   }
 
   /**
@@ -104,9 +103,7 @@ public class StationAlign {
 
     Pose2d aprilTagPose = tagPose.get().toPose2d();
 
-    Pose2d resultPose =
-        aprilTagPose.plus(
-            new Transform2d(kStationDistance, Meter.zero(), kStationAlignmentRotation));
+    Pose2d resultPose = aprilTagPose.plus(kStationAlignTransform);
 
     return resultPose;
   }
@@ -114,7 +111,11 @@ public class StationAlign {
   /** Drives to align against the center of the nearest station, no manual driving */
   public static Command goToNearestCenterAlign(SwerveDrive swerveDrive) {
     return swerveDrive.driveToFieldPose(
-        () -> getNearestCenterAlign(getNearestStationID(swerveDrive.getPose())));
+        () -> {
+          final Pose2d target = stationPoses.get(getNearestStationID(swerveDrive.getPose()));
+          swerveDrive.setAlignmentSetpoint(target);
+          return target;
+        });
   }
 
   /** Maintain translational driving while rotating toward the nearest station tag */

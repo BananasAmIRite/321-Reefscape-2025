@@ -1,11 +1,14 @@
 /* (C) Robolancers 2025 */
 package frc.robot.subsystems.drivetrain;
 
+import static edu.wpi.first.units.Units.Centimeters;
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
@@ -37,6 +40,9 @@ public class DrivetrainConstants {
   public static final LinearVelocity kMaxLinearVelocity =
       MetersPerSecond.of(4.0); // TunerConstants.kSpeedAt12Volts
 
-  public static final LinearVelocity kSlowModeLinearVelocity = MetersPerSecond.of(2); 
-  public static final AngularVelocity kSlowModeAngularVelocity = RadiansPerSecond.of(Math.PI * 1); 
+  public static final LinearVelocity kSlowModeLinearVelocity = MetersPerSecond.of(2);
+  public static final AngularVelocity kSlowModeAngularVelocity = RadiansPerSecond.of(Math.PI * 1);
+
+  public static final Distance kAlignmentSetpointTranslationTolerance = Centimeters.one();
+  public static final Angle kAlignmentSetpointRotationTolerance = Degrees.of(1.5);
 }

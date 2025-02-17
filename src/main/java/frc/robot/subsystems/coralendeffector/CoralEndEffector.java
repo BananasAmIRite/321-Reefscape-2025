@@ -50,8 +50,10 @@ public class CoralEndEffector extends SubsystemBase {
     io.updateInputs(inputs);
   }
 
-  /** Runs the end effector at a certain specified velocity using feedforward control
-      Will only run once; for a continuous method, see runAtVelocity(Supplier<AngularVelocity>) */
+  /**
+   * Runs the end effector at a certain specified velocity using feedforward control Will only run
+   * once; for a continuous method, see runAtVelocity(Supplier<AngularVelocity>)
+   */
   public void runAtVelocity(AngularVelocity velocity) {
     double output =
         endEffectorController.calculate(inputs.velocity.in(RPM), velocity.in(RPM))
@@ -87,7 +89,11 @@ public class CoralEndEffector extends SubsystemBase {
     return run(() -> io.setVoltage(voltage.get()));
   }
 
-  // Stalls coral if we have a coral; this should be the default command
+  public boolean hasCoral() {
+    return inputs.hasCoral;
+  }
+
+  // stalls coral if we have a coral; this should be the default command
   public Command stallCoralIfDetected() {
     return run(
         () -> {

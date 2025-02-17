@@ -8,10 +8,10 @@ import frc.robot.subsystems.elevator.ElevatorConstants;
 
 public class HomingCommands {
   /**
-   * Routine to home all mechanisms on the robot (eg. algae pivot and the elevator) 
-   * Homes the elevator first, then moves elevator out of the way and homes the algae pivot
-   * 
-   * TLDR: a special way of resetting encoders
+   * Routine to home all mechanisms on the robot (eg. algae pivot and the elevator) Homes the
+   * elevator first, then moves elevator out of the way and homes the algae pivot
+   *
+   * <p>TLDR: a special way of resetting encoders
    */
   public static Command homeEverything(Elevator elevator, AlgaeIntakePivot pivot) {
     return elevator

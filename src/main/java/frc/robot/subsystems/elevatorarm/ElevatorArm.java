@@ -20,10 +20,10 @@ import java.util.function.Supplier;
 
 /* Elevator Arm subsystem - represents the arm/pivot on the elevator
 
-  NOTE: The Elevator Arm is zeroed when coral intake CG is 90 degrees
-  - TO ZERO: move coral intake such that CG is all the way down due to gravity, zero, 
-  then move it to 90 deg, then zero again 
-  */
+NOTE: The Elevator Arm is zeroed when coral intake CG is 90 degrees
+- TO ZERO: move coral intake such that CG is all the way down due to gravity, zero,
+then move it to 90 deg, then zero again
+*/
 @Logged
 public class ElevatorArm extends SubsystemBase {
   // hardware abstraction for the arm
@@ -69,6 +69,8 @@ public class ElevatorArm extends SubsystemBase {
     this.inputs = new ElevatorArmInputs();
     this.pidController = new PIDController(config.kP(), config.kI(), config.kD());
     this.feedforward = new ArmFeedforward(0, config.kG(), 0);
+
+    this.pidController.setTolerance(ElevatorArmConstants.kAngleTolerance.in(Degrees));
   }
 
   /**

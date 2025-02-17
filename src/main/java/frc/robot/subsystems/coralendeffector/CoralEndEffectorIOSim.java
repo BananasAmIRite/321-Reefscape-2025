@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.RobotConstants;
 
-//Implementation of the CoralEndEffectorIO that controls the simulated coral end effector
+// Implementation of the CoralEndEffectorIO that controls the simulated coral end effector
 @Logged
 class CoralEndEffectorIOSim implements CoralEndEffectorIO {
 

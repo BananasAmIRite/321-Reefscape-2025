@@ -29,9 +29,8 @@ public class VisualizerConstants {
               ElevatorConstants.kElevatorMinimumHeight.in(Meters)));
 
   // arm shoulder joint in 3d
-  public static final Translation3d armRoot3d =
-      new Translation3d(-0.31 + 0.225, -0.23 + 0.156, 0.97 + (-0.104));
+  public static final Translation3d armRoot3d = new Translation3d(0.074, -0.085, 0.866);
 
   // rotating joint of the algae intake
-  public static final Translation3d algaeRoot3d = new Translation3d(0.3287, 0, 0.2181606);
+  public static final Translation3d algaeRoot3d = new Translation3d(0, 0.3287, 0.2181606);
 }

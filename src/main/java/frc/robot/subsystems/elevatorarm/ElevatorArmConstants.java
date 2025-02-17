@@ -30,6 +30,12 @@ public class ElevatorArmConstants {
   // absolute encoder offset
   public static final Angle kAbsoluteEncoderOffset = Degrees.of(0);
 
+  // non-setpoint setpoints
+  public static final Angle kPreAlignAngle = Degrees.of(150);
+
+  // controller config
+  public static final Angle kAngleTolerance = Degrees.of(1);
+
   // **** For simulation use ****
   // the MOI of the arm
   public static final double kElevatorArmMOI = 1; // TODO: find
@@ -38,7 +44,7 @@ public class ElevatorArmConstants {
   public static final Distance kElevatorArmLength = Meters.of(0.5); // TODO: find
 
   // the length of the arm (shoulder to elbow)
-  public static final Distance kArmLength = Meters.of(0.5); //TODO: find
+  public static final Distance kArmLength = Meters.of(0.5); // TODO: find
 
   // the length of the arm (elbow to wrist)
   public static final Distance kElbowLength = Inches.of(10.98); // TODO: find
@@ -48,7 +54,7 @@ public class ElevatorArmConstants {
 
   // the maximum angle the arm can go in simulation
   public static final Angle kMaxAngle = Degrees.of(180);
-  
+
   // the minimum angle the arm can go in simulation
   public static final Angle kMinAngle = Degrees.of(-180);
 

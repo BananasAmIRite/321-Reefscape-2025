@@ -1,6 +1,8 @@
 /* (C) Robolancers 2025 */
 package frc.robot.subsystems.drivetrain;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -18,14 +20,17 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotConstants;
-
 import java.util.function.DoubleSupplier;
 
 /*
@@ -50,6 +55,10 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
           .withDriveRequestType(DriveRequestType.Velocity)
           .withDesaturateWheelSpeeds(true);
 
+  private final SwerveDrivePoseEstimator reefPoseEstimator;
+
+  private Pose2d alignmentSetpoint = Pose2d.kZero;
+
   public DrivetrainReal(
       SwerveDrivetrainConstants drivetrainConstants, SwerveModuleConstants<?, ?, ?>... modules) {
     // create CTRE Swervedrivetrain
@@ -57,6 +66,10 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
     configNeutralMode(NeutralModeValue.Brake);
     configureAutoBuilder();
     configurePoseControllers();
+
+    this.reefPoseEstimator =
+        new SwerveDrivePoseEstimator(
+            getKinematics(), getHeading(), getModulePositions(), getPose());
   }
 
   @Override
@@ -177,7 +190,7 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
             thetaController.calculate(
                     getPose().getRotation().getRadians(), pose.getRotation().getRadians())
                 * DrivetrainConstants.kMaxAngularVelocity.in(RadiansPerSecond),
-                RobotConstants.kRobotLoopPeriod.in(Seconds));
+            RobotConstants.kRobotLoopPeriod.in(Seconds));
 
     setControl(
         fieldCentricRequest
@@ -201,6 +214,20 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
             .withVelocityY(speeds.vyMetersPerSecond)
             .withTargetDirection(rotation)
             .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance));
+  }
+
+  @Override
+  public void setAlignmentSetpoint(Pose2d setpoint) {
+    alignmentSetpoint = setpoint;
+  }
+
+  @Override
+  public boolean atPoseSetpoint() {
+    final var currentPose = getPose();
+    return currentPose.getTranslation().getDistance(alignmentSetpoint.getTranslation())
+            < DrivetrainConstants.kAlignmentSetpointTranslationTolerance.in(Meters)
+        && Math.abs(currentPose.getRotation().minus(alignmentSetpoint.getRotation()).getDegrees())
+            < DrivetrainConstants.kAlignmentSetpointRotationTolerance.in(Degrees);
   }
 
   @Override
@@ -228,6 +255,12 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
     return super.getState().ModuleTargets;
   }
 
+  @Logged(name = "ReefVisionEstimatedPose")
+  @Override
+  public Pose2d getReefVisionPose() {
+    return reefPoseEstimator.getEstimatedPosition();
+  }
+
   @Logged(name = "MeasuredRobotPose")
   @Override
   public Pose2d getPose() {
@@ -244,5 +277,16 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
   @Override
   public Rotation2d getHeading() {
     return new Rotation2d(super.getPigeon2().getYaw().getValue().in(Radians));
+  }
+
+  @Override
+  public void addReefVisionMeasurement(
+      Pose2d visionRobotPose, double timeStampSeconds, Matrix<N3, N1> standardDeviations) {
+    reefPoseEstimator.addVisionMeasurement(visionRobotPose, timeStampSeconds, standardDeviations);
+  }
+
+  @Override
+  public void periodic() {
+    reefPoseEstimator.update(getHeading(), getModulePositions());
   }
 }

@@ -19,10 +19,10 @@ public class AlgaeSuperstructure {
     this.rollers = rollers;
   }
 
-  /* Moves the entire elevator+arm superstructure to a desired state; 
-  this should be the go-to way of moving the superstructure, 
+  /* Moves the entire elevator+arm superstructure to a desired state;
+  this should be the go-to way of moving the superstructure,
     aside from the default subsystem commands */
-    
+
   public Command goToSetpoint(AlgaeSetpoint setpoint) {
     return pivot.goToAngle(setpoint);
   }
@@ -32,9 +32,7 @@ public class AlgaeSuperstructure {
   }
 
   public Command outtakeAlgae() {
-    return goToSetpoint(AlgaeSetpoint.OUTTAKE)
-        .until(pivot::atSetpoint)
-        .andThen(this.rollers.outtake());
+    return this.rollers.outtake();
   }
 
   public Command prepareClimb() {
@@ -49,6 +47,14 @@ public class AlgaeSuperstructure {
     TunableConstant kTargetAngle = new TunableConstant("/AlgaeSuperstructure/TargetAngle", 0);
 
     return pivot.goToAngle(() -> Degrees.of(kTargetAngle.get()));
+  }
+
+  public boolean atTargetState() {
+    return pivot.atSetpoint();
+  }
+
+  public boolean hasAlgae() {
+    return rollers.hasAlgae();
   }
 
   public enum AlgaeSetpoint {

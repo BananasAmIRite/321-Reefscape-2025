@@ -12,4 +12,5 @@ public class ElevatorInputs {
   public Distance height;
   public LinearVelocity velocity;
   public Current current;
+  public boolean atSetpoint;
 }

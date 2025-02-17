@@ -4,11 +4,9 @@ package frc.robot.subsystems.elevator;
 import static edu.wpi.first.units.Units.Amp;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.epilogue.Logged;
-import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -22,42 +20,36 @@ public class Elevator extends SubsystemBase {
   // Initialize all parts of Elevator Subsystem, as well as pid controller
   private ElevatorIO io;
   private ElevatorInputs inputs;
-  private PIDController pidController;
-  private ElevatorFeedforward feedForward;
-  private ElevatorConfig config;
-
-  private boolean isHomed = false;
 
   private Distance targetHeight = ElevatorConstants.kElevatorStartingHeight;
 
-  /* Method that creates the Elevator object as the real/sim io by checking if we're running 
-      a sim or not */
+  private boolean isHomed = false;
+
+  /* Method that creates the Elevator object as the real/sim io by checking if we're running
+  a sim or not */
   public static Elevator create() {
     return RobotBase.isReal()
-        ? new Elevator(new ElevatorIOTalon(), ElevatorIOTalon.config)
-        : new Elevator(new ElevatorIOSim(), ElevatorIOSim.config);
+        ? new Elevator(new ElevatorIOTalon())
+        : new Elevator(new ElevatorIOSim());
   }
 
   public static Elevator disable() {
-    return new Elevator(new ElevatorIOIdeal(), ElevatorIOIdeal.config);
+    return new Elevator(new ElevatorIOIdeal());
   }
 
-  /* Eleavtor Constructor
-      Creates Elevator, sets initialized variables to the real/sim values from create() method above */
-  public Elevator(ElevatorIO io, ElevatorConfig config) {
+  // Eleavtor Constructor
+  // Creates Elevator, sets initialized variables to the real/sim values from create() method above
+  public Elevator(ElevatorIO io) {
     this.io = io;
     this.inputs = new ElevatorInputs();
-    this.config = config;
-    this.pidController = new PIDController(config.kP(), config.kI(), config.kD());
-    this.feedForward = new ElevatorFeedforward(config.kS(), config.kG(), 0);
 
     // set position to starting position
-    io.setEncoderPosition(ElevatorConstants.kElevatorStartingHeight);
+    io.resetEncoderPosition();
   }
 
   /* Below are methods & their commands for simple robot operations
-    Because we need commands for when buttons are pressed, we create methods first then use
-    run(()->{method}) */
+  Because we need commands for when buttons are pressed, we create methods first then use
+  run(()->{method}) */
 
   // Sets voltage
   public void setVoltage(Voltage volts) {
@@ -73,27 +65,28 @@ public class Elevator extends SubsystemBase {
 
   // Goes to height
   public void goToHeight(Distance targetHeight) {
-    double motorOutput = pidController.calculate(inputs.height.in(Meters), targetHeight.in(Meters));
-    double ff = feedForward.calculate(motorOutput);
-
     this.targetHeight = targetHeight;
-
-    setVoltage(Volts.of(motorOutput + ff));
+    io.goToPosition(targetHeight);
   }
 
   // returns a Command to go to height
   public Command goToHeight(Supplier<Distance> targetHeight) {
     return run(
         () -> {
-          goToHeight(targetHeight.get());
+          double setpoint =
+              MathUtil.clamp(
+                  targetHeight.get().in(Meters),
+                  ElevatorConstants.kElevatorMinimumHeight.in(Meters),
+                  ElevatorConstants.kElevatorMaximumHeight.in(Meters));
+          goToHeight(Meters.of(setpoint));
         });
   }
 
   /* Command to "home" the encoder (go to starting position & set encoder to said position)
-      - Sets voltage to a constant negative voltage
-      - Once current spikes (signaling motor running into resistance) & the V ~0, encoder speed is
-        about zero
-      - Set to 0 */
+  - Sets voltage to a constant negative voltage
+  - Once current spikes (signaling motor running into resistance) & the V ~0, encoder speed is
+    about zero
+  - Set to 0 */
   public Command homeEncoder() {
     return setVoltage(() -> ElevatorConstants.kHomingVoltage)
         .until(
@@ -104,8 +97,7 @@ public class Elevator extends SubsystemBase {
         .andThen(
             runOnce(
                 () -> {
-                  io.setEncoderPosition(
-                      Meters.of(ElevatorConstants.kElevatorStartingHeight.in(Meters)));
+                  io.resetEncoderPosition();
                   isHomed = true;
                 }));
   }
@@ -113,19 +105,26 @@ public class Elevator extends SubsystemBase {
   /* When the command runs, tunable constants are created & PID controller values & target height are
   // set to said tunable values */
   public Command tune() {
-    TunableConstant kP = new TunableConstant("/Elevator/kP", config.kP());
-    TunableConstant kI = new TunableConstant("/Elevator/kI", config.kI());
-    TunableConstant kD = new TunableConstant("/Elevator/kD", config.kD());
-    TunableConstant kG = new TunableConstant("/Elevator/kG", config.kG());
-    TunableConstant kS = new TunableConstant("/Elevator/kS", config.kS());
+    TunableConstant kP = new TunableConstant("/Elevator/kP", 0);
+    TunableConstant kI = new TunableConstant("/Elevator/kI", 0);
+    TunableConstant kD = new TunableConstant("/Elevator/kD", 0);
+    TunableConstant kG = new TunableConstant("/Elevator/kG", 0);
+    TunableConstant kS = new TunableConstant("/Elevator/kS", 0);
+    TunableConstant kV = new TunableConstant("/Elevator/kV", 0);
+    TunableConstant kA = new TunableConstant("/Elevator/kA", 0);
     TunableConstant targetHeight = new TunableConstant("/Elevator/targetHeight", 0);
 
-    return run(
-        () -> {
-          this.pidController.setPID(kP.get(), kI.get(), kD.get());
-          this.feedForward = new ElevatorFeedforward(kS.get(), kG.get(), 0);
-          goToHeight(Meters.of(targetHeight.get()));
-        });
+    return runOnce(
+            () -> {
+              io.setOnboardPID(
+                  new ElevatorConfig(
+                      kP.get(), kI.get(), kD.get(), kG.get(), kS.get(), kV.get(), kA.get()));
+            })
+        .andThen(
+            run(
+                () -> {
+                  goToHeight(Meters.of(targetHeight.get()));
+                }));
   }
 
   // Loops repeatedly
@@ -152,6 +151,6 @@ public class Elevator extends SubsystemBase {
   }
 
   public boolean atSetpoint() {
-    return pidController.atSetpoint();
+    return inputs.atSetpoint;
   }
 }

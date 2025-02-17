@@ -12,5 +12,5 @@ public class RobotConstants {
   public static final Time kRobotLoopPeriod = Seconds.of(TimedRobot.kDefaultPeriod);
 
   public static final AprilTagFieldLayout kAprilTagFieldLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+      AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 }

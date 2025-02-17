@@ -43,6 +43,9 @@ public class AlgaeIntakePivotConstants {
   public static final double kPivotMOI = 0.1; // TODO: tune
   public static final Voltage kPivotClimbVoltage = Volts.of(-8); // TODO: tune
 
+  // controller constants
+  public static final Angle kControllerTolerance = Degrees.of(1);
+
   // motor configurations
   public static final boolean kLeftInverted = false;
   public static final boolean kRightInverted = false;

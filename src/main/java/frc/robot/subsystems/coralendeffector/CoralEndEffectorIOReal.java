@@ -16,7 +16,7 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.units.measure.Voltage;
 
 /* Implementation of the CoralEndEffectorIO that controls the real coral end effector using a
-    SparkMax motor */
+SparkMax motor */
 @Logged
 public class CoralEndEffectorIOReal implements CoralEndEffectorIO {
 

@@ -58,4 +58,8 @@ public class SelfControlledSwerveDriveSimulationWrapper
     super.runChassisSpeeds(
         desatSpeeds, centerOfRotationMeters, fieldCentricDrive, discretizeSpeeds);
   }
+
+  public SwerveDriveKinematics getKinematics() {
+    return swerveKinematics;
+  }
 }

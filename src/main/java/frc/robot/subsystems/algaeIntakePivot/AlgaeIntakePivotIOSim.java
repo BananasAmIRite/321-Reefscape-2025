@@ -19,7 +19,7 @@ import frc.robot.RobotConstants;
 public class AlgaeIntakePivotIOSim implements AlgaeIntakePivotIO {
 
   public static final AlgaeIntakePivotConfig config =
-      new AlgaeIntakePivotConfig(0.2, 0, 0.01, 0.376);
+      new AlgaeIntakePivotConfig(0.2, 0, 0.01, 1.483);
 
   private SingleJointedArmSim pivotSim;
 

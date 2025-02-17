@@ -38,7 +38,6 @@ public class ElevatorArmIOSpark implements ElevatorArmIO {
   //         360,
   //         ElevatorArmConstants.kAbsoluteEncoderOffset.in(Degrees));
 
-  
   private CANdi encoderCandi = new CANdi(ElevatorArmConstants.kEncoderCANdiId);
 
   public ElevatorArmIOSpark() {

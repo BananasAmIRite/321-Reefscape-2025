@@ -14,8 +14,8 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.units.measure.Voltage;
 
 /**
- * Implementation of the ElevatorArmIO that controls a real ElevatorArm using a 
- * TalonFX Motor Controller
+ * Implementation of the ElevatorArmIO that controls a real ElevatorArm using a TalonFX Motor
+ * Controller
  */
 @Logged
 public class ElevatorArmIOTalon implements ElevatorArmIO {
@@ -25,7 +25,6 @@ public class ElevatorArmIOTalon implements ElevatorArmIO {
 
   // the motor that is controlling the arm (using a TalonFX controller)
   private TalonFX armMotor = new TalonFX(ElevatorArmConstants.kElevatorArmId);
-
 
   // TODO: if elec doesn't use a CANdi, use this for encoder output
   // absolute encoder from 0 to 360

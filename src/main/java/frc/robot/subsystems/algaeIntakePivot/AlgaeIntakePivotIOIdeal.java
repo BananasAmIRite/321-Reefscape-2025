@@ -16,7 +16,7 @@ public class AlgaeIntakePivotIOIdeal implements AlgaeIntakePivotIO {
   public void updateInputs(AlgaeIntakePivotInputs inputs) {
     inputs.pivotAngle = Degrees.of(0);
     inputs.pivotVelocity = DegreesPerSecond.of(0);
-    inputs.pivotCurrent = Amps.of(0);
+    inputs.pivotCurrent = Amps.zero();
   }
 
   public void setPivotVoltage(Voltage volts) {}
