@@ -12,8 +12,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.DriverCommands;
 import frc.robot.commands.HomingCommands;
-import frc.robot.commands.ProcessorAlign;
 import frc.robot.commands.ReefAlign;
 import frc.robot.commands.StationAlign;
 import frc.robot.subsystems.AlgaeSuperstructure;
@@ -30,7 +30,6 @@ import frc.robot.subsystems.drivetrain.SwerveDrive;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorConstants;
 import frc.robot.subsystems.elevatorarm.ElevatorArm;
-import frc.robot.subsystems.elevatorarm.ElevatorArmConstants;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.util.ReefPosition;
 import java.util.function.DoubleSupplier;
@@ -78,13 +77,13 @@ public class RobotContainer {
   private Trigger isSlowMode = new Trigger(() -> false);
 
   // drivetrain controls
-  private DoubleSupplier driverForward =
+  public DoubleSupplier driverForward =
       () ->
           -MathUtil.applyDeadband(driver.getLeftY(), DrivetrainConstants.kDriveDeadband)
               * (isSlowMode.getAsBoolean()
                   ? DrivetrainConstants.kSlowModeLinearVelocity.in(MetersPerSecond)
                   : DrivetrainConstants.kMaxLinearVelocity.in(MetersPerSecond));
-  private DoubleSupplier driverStrafe =
+  public DoubleSupplier driverStrafe =
       () ->
           -MathUtil.applyDeadband(driver.getLeftX(), DrivetrainConstants.kDriveDeadband)
               * (isSlowMode.getAsBoolean()
@@ -152,93 +151,109 @@ public class RobotContainer {
             StationAlign.rotateToNearestStationTag(drivetrain, driverForward, driverStrafe)
                 .alongWith(coralSuperstructure.feedCoral()));
 
+    // WARNING: Ivan wrote the following below, please check. Not safe for those
+    // who are sensitive and cannot handle programming crimes.
+
     // coral outtake
+    // driver
+    //     .rightTrigger()
+    //     .whileTrue( // while right trigger is pressed:
+    //         Commands.runOnce(() -> isDriverOverride = false)
+    //             .andThen(
+    //                 // either align to reef or coral based on how far we are away
+    //                 // rotate to reef until we're close enough
+    //                 ReefAlign.rotateToNearestReefTag(drivetrain, driverForward, driverStrafe)
+    //                     .until(
+    //                         () ->
+    //                             ReefAlign.isWithinReefRange(
+    //                                     drivetrain,
+    //                                     ReefAlign
+    //                                         .kMechanismDeadbandThreshold) // use mechanism
+    // threshold
+    //                                 // cuz we
+    //                                 // wanna be close before aligning
+    //                                 // in this case
+    //                                 && Math.hypot(
+    //                                         driverForward.getAsDouble(),
+    // driverStrafe.getAsDouble())
+    //                                     <= 0.05
+    //                                 && !isDriverOverride)
+    //                     .andThen(
+    //                         // when we get close enough, align to reef, but only while we're
+    // close
+    //                         // enough
+    //                         ReefAlign.alignToReef(drivetrain, () -> queuedReefPosition)
+    //                             .onlyWhile(
+    //                                 () ->
+    //                                     ReefAlign.isWithinReefRange(
+    //                                             drivetrain,
+    // ReefAlign.kMechanismDeadbandThreshold)
+    //                                         && Math.hypot(
+    //                                                 driverForward.getAsDouble(),
+    //                                                 driverStrafe.getAsDouble())
+    //                                             <= 0.05
+    //                                         &&
+    //                                         // allow driver control to be taken back when
+    //                                         // driverOverride becomes true
+    //                                         !isDriverOverride))
+    //                     // when we get far away, repeat the command
+    //                     .repeatedly()
+    //                     .alongWith( // and run the mechanism to where we need to go
+    //                         coralSuperstructure
+    //                             .goToSetpoint(
+    //                                 // move arm up to avoid hitting reef until we get close to
+    // reef
+    //                                 () -> CoralScorerSetpoint.NEUTRAL.getElevatorHeight(),
+    //                                 () -> ElevatorArmConstants.kPreAlignAngle)
+    //                             .until(
+    //                                 () ->
+    //                                     coralSuperstructure.atTargetState()
+    //                                         && ReefAlign.isWithinReefRange(
+    //                                             drivetrain,
+    // ReefAlign.kMechanismDeadbandThreshold))
+    //                             .andThen(
+    //                                 // move the elevator up but keep arm up
+    //                                 coralSuperstructure
+    //                                     .goToSetpoint(
+    //                                         () -> queuedSetpoint.getElevatorHeight(),
+    //                                         () -> ElevatorArmConstants.kPreAlignAngle)
+    //                                     .until(() -> coralSuperstructure.atTargetState())
+    //                                     // then move arm down to setpoint
+    //                                     .andThen(
+    //                                         coralSuperstructure.goToSetpoint(() ->
+    // queuedSetpoint)))
+    //                             // and only do this while we're in the zone (when we're not, we
+    // will
+    //                             // stay in the pre-alignment position)
+    //                             .onlyWhile(
+    //                                 () ->
+    //                                     ReefAlign.isWithinReefRange(
+    //                                             drivetrain,
+    // ReefAlign.kMechanismDeadbandThreshold)
+    //                                         && queuedSetpoint != CoralScorerSetpoint.NEUTRAL)
+    //                             .repeatedly())));
+
     driver
         .rightTrigger()
-        .whileTrue( // while right trigger is pressed:
+        .whileTrue(
             Commands.runOnce(() -> isDriverOverride = false)
                 .andThen(
-                    // either align to reef or coral based on how far we are away
-                    // rotate to reef until we're close enough
-                    ReefAlign.rotateToNearestReefTag(drivetrain, driverForward, driverStrafe)
-                        .until(
-                            () ->
-                                ReefAlign.isWithinReefRange(
-                                        drivetrain,
-                                        ReefAlign
-                                            .kMechanismDeadbandThreshold) // use mechanism threshold
-                                    // cuz we
-                                    // wanna be close before aligning
-                                    // in this case
-                                    && Math.hypot(
-                                            driverForward.getAsDouble(), driverStrafe.getAsDouble())
-                                        <= 0.05
-                                    && !isDriverOverride)
-                        .andThen(
-                            // when we get close enough, align to reef, but only while we're close
-                            // enough
-                            ReefAlign.alignToReef(drivetrain, () -> queuedReefPosition)
-                                .onlyWhile(
-                                    () ->
-                                        ReefAlign.isWithinReefRange(
-                                                drivetrain, ReefAlign.kMechanismDeadbandThreshold)
-                                            && Math.hypot(
-                                                    driverForward.getAsDouble(),
-                                                    driverStrafe.getAsDouble())
-                                                <= 0.05
-                                            &&
-                                            // allow driver control to be taken back when
-                                            // driverOverride becomes true
-                                            !isDriverOverride))
-                        // when we get far away, repeat the command
-                        .repeatedly()
-                        .alongWith( // and run the mechanism to where we need to go
-                            coralSuperstructure
-                                .goToSetpoint(
-                                    // move arm up to avoid hitting reef until we get close to reef
-                                    () -> CoralScorerSetpoint.NEUTRAL.getElevatorHeight(),
-                                    () -> ElevatorArmConstants.kPreAlignAngle)
-                                .until(
-                                    () ->
-                                        coralSuperstructure.atTargetState()
-                                            && ReefAlign.isWithinReefRange(
-                                                drivetrain, ReefAlign.kMechanismDeadbandThreshold))
-                                .andThen(
-                                    // move the elevator up but keep arm up
-                                    coralSuperstructure
-                                        .goToSetpoint(
-                                            () -> queuedSetpoint.getElevatorHeight(),
-                                            () -> ElevatorArmConstants.kPreAlignAngle)
-                                        .until(() -> coralSuperstructure.atTargetState())
-                                        // then move arm down to setpoint
-                                        .andThen(
-                                            coralSuperstructure.goToSetpoint(() -> queuedSetpoint)))
-                                // and only do this while we're in the zone (when we're not, we will
-                                // stay in the pre-alignment position)
-                                .onlyWhile(
-                                    () ->
-                                        ReefAlign.isWithinReefRange(
-                                                drivetrain, ReefAlign.kMechanismDeadbandThreshold)
-                                            && queuedSetpoint != CoralScorerSetpoint.NEUTRAL)
-                                .repeatedly())));
+                    DriverCommands.alignToReef(
+                        drivetrain, driverForward, driverStrafe, () -> isDriverOverride))
+                .repeatedly()
+                .alongWith(
+                    DriverCommands.runCoralSuperstructure(coralSuperstructure, queuedSetpoint))
+                .onlyWhile(
+                    () ->
+                        ReefAlign.isWithinReefRange(
+                                drivetrain, ReefAlign.kMechanismDeadbandThreshold)
+                            && queuedSetpoint != CoralScorerSetpoint.NEUTRAL)
+                .repeatedly());
 
     driver
         .rightTrigger()
         .onFalse( // for coral scoring
-            coralSuperstructure
-                .goToSetpoint(() -> queuedSetpoint) // ensure we're at the setpoint
-                .alongWith(coralSuperstructure.outtakeCoral()) // and outtake coral
-                .until(() -> !coralSuperstructure.hasCoral()) // until we don't have coral
-                .withTimeout(1) // timeout at 1 second
-                .andThen(
-                    // move arm up and go back down (only if we're already at the scoring setpoint
-                    // state)
-                    coralSuperstructure
-                        .goToSetpoint(
-                            () -> CoralScorerSetpoint.NEUTRAL.getElevatorHeight(),
-                            () -> ElevatorArmConstants.kPreAlignAngle)
-                        .until(
-                            coralSuperstructure::atTargetState)) // and then resume default command
+            DriverCommands.scoreCoral(coralSuperstructure)
                 .onlyIf(
                     () ->
                         coralSuperstructure.atTargetState()
@@ -246,8 +261,7 @@ public class RobotContainer {
                             && !driver
                                 .povLeft()
                                 .getAsBoolean())); // only if we're at the target state and are
-    // ready
-    // to score
+    // ready to score
 
     // --- ALGAE AUTOMATED CONTROLS ---
 
@@ -255,50 +269,58 @@ public class RobotContainer {
     driver.leftBumper().whileTrue(algaeSuperstructure.intakeAlgae());
 
     // algae outtake
+    // driver
+    //     .leftTrigger()
+    //     .whileTrue( // while left trigger is pressed:
+    //         Commands.runOnce(() -> isDriverOverride = false)
+    //             .andThen(
+    //                 // rotate to nearest processor unless conditions for full alignment are met
+    //                 ProcessorAlign.rotateToNearestProcessor(drivetrain, driverForward,
+    // driverStrafe)
+    //                     .until(
+    //                         () -> // conditions for full alignment: in range + driver not
+    // pressing
+    //                             // on stick + driver override is off
+    //                             ProcessorAlign.isWithinProcessorRange(
+    //                                     drivetrain, ProcessorAlign.kAlignmentDeadbandRange)
+    //                                 && Math.hypot(
+    //                                         driverForward.getAsDouble(),
+    // driverStrafe.getAsDouble())
+    //                                     <= 0.05
+    //                                 && !isDriverOverride)
+    //                     .andThen(
+    //                         // conditions for full alignment are met, proceed with full alignment
+    //                         ProcessorAlign.goToNearestAlign(drivetrain)
+    //                             .onlyWhile(
+    //                                 () ->
+    //                                     !isDriverOverride
+    //                                         && Math.hypot(
+    //                                                 driverForward.getAsDouble(),
+    //                                                 driverStrafe.getAsDouble())
+    //                                             <= 0.05
+    //                                         && ProcessorAlign.isWithinProcessorRange(
+    //                                             drivetrain,
+    //                                             ProcessorAlign.kAlignmentDeadbandRange)))
+    //                     .repeatedly()
+    //                     .alongWith(
+    //                         algaeSuperstructure.goToSetpoint(
+    //                             AlgaeSetpoint
+    //                                 .OUTTAKE)))); // move algae intake to the correct setpoint
+
     driver
         .leftTrigger()
-        .whileTrue( // while left trigger is pressed:
+        .whileTrue(
             Commands.runOnce(() -> isDriverOverride = false)
                 .andThen(
-                    // rotate to nearest processor unless conditions for full alignment are met
-                    ProcessorAlign.rotateToNearestProcessor(drivetrain, driverForward, driverStrafe)
-                        .until(
-                            () -> // conditions for full alignment: in range + driver not pressing
-                                // on stick + driver override is off
-                                ProcessorAlign.isWithinProcessorRange(
-                                        drivetrain, ProcessorAlign.kAlignmentDeadbandRange)
-                                    && Math.hypot(
-                                            driverForward.getAsDouble(), driverStrafe.getAsDouble())
-                                        <= 0.05
-                                    && !isDriverOverride)
-                        .andThen(
-                            // conditions for full alignment are met, proceed with full alignment
-                            ProcessorAlign.goToNearestAlign(drivetrain)
-                                .onlyWhile(
-                                    () ->
-                                        !isDriverOverride
-                                            && Math.hypot(
-                                                    driverForward.getAsDouble(),
-                                                    driverStrafe.getAsDouble())
-                                                <= 0.05
-                                            && ProcessorAlign.isWithinProcessorRange(
-                                                drivetrain,
-                                                ProcessorAlign.kAlignmentDeadbandRange)))
-                        .repeatedly()
-                        .alongWith(
-                            algaeSuperstructure.goToSetpoint(
-                                AlgaeSetpoint
-                                    .OUTTAKE)))); // move algae intake to the correct setpoint
+                    DriverCommands.algaeDriveAlign(
+                        drivetrain, driverForward, driverStrafe, () -> isDriverOverride))
+                .repeatedly()
+                .alongWith(algaeSuperstructure.goToSetpoint(AlgaeSetpoint.OUTTAKE)));
 
     driver
         .leftTrigger()
         .onFalse( // when left trigger is let go
-            algaeSuperstructure
-                .goToSetpoint(
-                    AlgaeSetpoint.OUTTAKE) // score until we don't have algae or with 1s timeout
-                .alongWith(algaeSuperstructure.outtakeAlgae())
-                .until(() -> !algaeSuperstructure.hasAlgae())
-                .withTimeout(1)
+            DriverCommands.deployAlgae(drivetrain, algaeSuperstructure)
                 .onlyIf(
                     () ->
                         algaeSuperstructure.atTargetState()
