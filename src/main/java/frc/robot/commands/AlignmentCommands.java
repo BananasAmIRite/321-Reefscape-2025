@@ -13,41 +13,34 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-public class DriverCommands {
-  private static SwerveDrive drivetrain;
-
-  // robot queued states
-  private static Supplier<ReefPosition> queuedReefPosition;
-  private static CoralScorerSetpoint queuedSetpoint = CoralScorerSetpoint.NEUTRAL;
+public class AlignmentCommands {
 
   /**
    * Aligns the robot to the reef using AprilTags and reef positioning logic. Switches between
    * rotating and fully aligning when in range.
    */
-  public static Command alignToReef(
+  public static Command autoAlignReef(
+      Supplier<ReefPosition> reefPos,
       SwerveDrive drivetrain,
       DoubleSupplier driverForward,
       DoubleSupplier driverStrafe,
       BooleanSupplier isDriverOverride) {
-    return ReefAlign.rotateToNearestReefTag(drivetrain, driverForward, driverStrafe)
-        .until(
-            () ->
-                isAlignedToReef(drivetrain, driverForward, driverStrafe)
-                    && !isDriverOverride.getAsBoolean())
-        .andThen(
-            ReefAlign.alignToReef(drivetrain, queuedReefPosition)
-                .onlyWhile(
-                    () ->
-                        isAlignedToReef(drivetrain, driverForward, driverStrafe)
-                            && !isDriverOverride.getAsBoolean()))
-        .repeatedly();
+    return selectCommand(
+        ReefAlign.rotateToNearestReefTag(drivetrain, driverForward, driverStrafe),
+        ReefAlign.alignToReef(drivetrain, reefPos),
+        () ->
+            isAlignedToReef(drivetrain, driverForward, driverStrafe)
+                && !isDriverOverride.getAsBoolean());
   }
 
   /** Controlling coral superstructure */
-  public static Command runCoralSuperstructure(
-      CoralSuperstructure coralSuperstructure, CoralScorerSetpoint queuedSetpoint) {
+  public static Command autoAimSuperstructureReef(
+      SwerveDrive drivetrain,
+      CoralSuperstructure coralSuperstructure,
+      Supplier<CoralScorerSetpoint> queuedSetpoint) {
     return coralSuperstructure
         .goToSetpoint(
+            // move arm up to avoid hitting reef until we get close to reef
             () -> CoralScorerSetpoint.NEUTRAL.getElevatorHeight(),
             () -> ElevatorArmConstants.kPreAlignAngle)
         .until(
@@ -56,12 +49,21 @@ public class DriverCommands {
                     && ReefAlign.isWithinReefRange(
                         drivetrain, ReefAlign.kMechanismDeadbandThreshold))
         .andThen(
+            // move the elevator up but keep arm up
             coralSuperstructure
                 .goToSetpoint(
-                    () -> queuedSetpoint.getElevatorHeight(),
+                    () -> queuedSetpoint.get().getElevatorHeight(),
                     () -> ElevatorArmConstants.kPreAlignAngle)
                 .until(() -> coralSuperstructure.atTargetState())
-                .andThen(coralSuperstructure.goToSetpoint(() -> queuedSetpoint)));
+                // then move arm down to setpoint
+                .andThen(coralSuperstructure.goToSetpoint(queuedSetpoint)))
+        // and only do this while we're in the zone (when we're not, we will
+        // stay in the pre-alignment position)
+        .onlyWhile(
+            () ->
+                ReefAlign.isWithinReefRange(drivetrain, ReefAlign.kMechanismDeadbandThreshold)
+                    && queuedSetpoint.get() != CoralScorerSetpoint.NEUTRAL)
+        .repeatedly();
   }
 
   /** Checks if the robot is within reef alignment range. */
@@ -72,9 +74,12 @@ public class DriverCommands {
   }
 
   /** Scores coral on reef once driver releases trigger (after alignment) */
-  public static Command scoreCoral(CoralSuperstructure coralSuperstructure) {
+  public static Command autoScoreCoral(
+      CoralSuperstructure coralSuperstructure,
+      Supplier<CoralScorerSetpoint> queuedSetpoint,
+      BooleanSupplier shouldScore) {
     return coralSuperstructure
-        .goToSetpoint(() -> queuedSetpoint) // Ensure we are at the setpoint
+        .goToSetpoint(queuedSetpoint) // Ensure we are at the setpoint
         .alongWith(coralSuperstructure.outtakeCoral()) // Outtake coral
         .until(() -> !coralSuperstructure.hasCoral()) // until we don't have coral
         .withTimeout(1) // Max timeout of 1 second
@@ -84,35 +89,46 @@ public class DriverCommands {
                 .goToSetpoint(
                     () -> CoralScorerSetpoint.NEUTRAL.getElevatorHeight(),
                     () -> ElevatorArmConstants.kPreAlignAngle) // Move arm up after scoring
-                .until(coralSuperstructure::atTargetState)); // and then resume default command
+                .until(coralSuperstructure::atTargetState))
+        .onlyIf(
+            () ->
+                coralSuperstructure.atTargetState()
+                    && queuedSetpoint.get() != CoralScorerSetpoint.NEUTRAL
+                    && shouldScore.getAsBoolean()); // and then resume default command
   }
 
-  public static Command algaeDriveAlign(
+  public static Command autoAlignAlgae(
       SwerveDrive drivetrain,
       DoubleSupplier driverForward,
       DoubleSupplier driverStrafe,
       BooleanSupplier isDriverOverride) {
-    return ProcessorAlign.rotateToNearestProcessor(drivetrain, driverForward, driverStrafe)
-        .until(
-            () ->
-                ProcessorAlign.isWithinProcessorRange(
-                        drivetrain, ProcessorAlign.kAlignmentDeadbandRange)
-                    && Math.hypot(driverForward.getAsDouble(), driverStrafe.getAsDouble()) <= 0.05)
-        .andThen(
-            ProcessorAlign.goToNearestAlign(drivetrain)
-                .onlyWhile(
-                    () ->
-                        Math.hypot(driverForward.getAsDouble(), driverStrafe.getAsDouble()) <= 0.05
-                            && ProcessorAlign.isWithinProcessorRange(
-                                drivetrain, ProcessorAlign.kAlignmentDeadbandRange)));
+    return selectCommand(
+        ProcessorAlign.rotateToNearestProcessor(drivetrain, driverForward, driverStrafe),
+        ProcessorAlign.goToNearestAlign(drivetrain),
+        () ->
+            Math.hypot(driverForward.getAsDouble(), driverStrafe.getAsDouble()) <= 0.05
+                && ProcessorAlign.isWithinProcessorRange(
+                    drivetrain, ProcessorAlign.kAlignmentDeadbandRange));
   }
 
-  public static Command deployAlgae(
-      SwerveDrive drivetrain, AlgaeSuperstructure algaeSuperstructure) {
+  public static Command autoOuttakeAlgae(
+      SwerveDrive drivetrain,
+      AlgaeSuperstructure algaeSuperstructure,
+      BooleanSupplier shouldScore) {
     return algaeSuperstructure
         .goToSetpoint(AlgaeSetpoint.OUTTAKE) // score until we don't have algae or with 1s timeout
         .alongWith(algaeSuperstructure.outtakeAlgae())
         .until(() -> !algaeSuperstructure.hasAlgae())
-        .withTimeout(1); // only if algae intake is at outtake position
+        .withTimeout(1)
+        .onlyIf(
+            () ->
+                algaeSuperstructure.atTargetState()
+                    && shouldScore.getAsBoolean()); // only if algae intake is at outtake position
+  }
+
+  // select between two running commands repeatedly, depending on the value of the condition
+  private static Command selectCommand(
+      Command cmdIfFalse, Command cmdIfTrue, BooleanSupplier condition) {
+    return cmdIfFalse.until(condition).andThen(cmdIfTrue.onlyWhile(condition)).repeatedly();
   }
 }
