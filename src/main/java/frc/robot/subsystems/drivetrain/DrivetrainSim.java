@@ -20,6 +20,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -339,5 +340,16 @@ public class DrivetrainSim implements SwerveDrive {
   @Logged(name = "ClosestAprilTag")
   public Pose2d closestAprilTag() {
     return ReefAlign.getNearestReefPose(getPose());
+  }
+
+  @Override
+  public Angle getPitch() {
+    // simulation does not support pitch and roll :(
+    return Degrees.of(0);
+  }
+
+  @Override
+  public Angle getRoll() {
+    return Degrees.of(0);
   }
 }

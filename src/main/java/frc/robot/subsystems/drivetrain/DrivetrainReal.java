@@ -31,6 +31,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -88,11 +89,12 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
     return run(
         () -> {
           var speeds =
-              ChassisSpeeds.discretize(
-                  translationX.getAsDouble(),
-                  translationY.getAsDouble(),
-                  rotation.getAsDouble(),
-                  DrivetrainConstants.kLoopDt.in(Seconds));
+              withAntiTipping(
+                  ChassisSpeeds.discretize(
+                      translationX.getAsDouble(),
+                      translationY.getAsDouble(),
+                      rotation.getAsDouble(),
+                      DrivetrainConstants.kLoopDt.in(Seconds)));
 
           // x braking
           // if(Math.abs(newTranslationX) < DriveConstants.kDriveDeadband &&
@@ -357,5 +359,15 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
                 lastAlliance = allianceColor;
               });
     }
+  }
+
+  @Override
+  public Angle getPitch() {
+    return super.getPigeon2().getPitch().getValue();
+  }
+
+  @Override
+  public Angle getRoll() {
+    return super.getPigeon2().getRoll().getValue();
   }
 }

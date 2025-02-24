@@ -1,6 +1,8 @@
 /* (C) Robolancers 2025 */
 package frc.robot.subsystems.drivetrain;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
@@ -16,6 +18,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -49,6 +52,9 @@ public interface SwerveDrive extends Subsystem {
           DrivetrainConstants.kHeadingGains.kP(),
           DrivetrainConstants.kHeadingGains.kI(),
           DrivetrainConstants.kHeadingGains.kD());
+
+  PIDController pitchController = new PIDController(0, 0, 0);
+  PIDController rollController = new PIDController(0, 0, 0);
 
   public static SwerveDrive create() {
     return RobotBase.isReal()
@@ -183,6 +189,10 @@ public interface SwerveDrive extends Subsystem {
 
   Rotation2d getHeading();
 
+  Angle getPitch();
+
+  Angle getRoll();
+
   /**
    * Add vision measurement to the main Swerve Drive pose estimator
    *
@@ -213,4 +223,23 @@ public interface SwerveDrive extends Subsystem {
    */
   void addReefVisionMeasurement(
       Pose2d visionRobotPose, double timeStampSeconds, Matrix<N3, N1> standardDeviations);
+
+  default ChassisSpeeds getAntiTippingSpeeds() {
+    Angle pitch = getPitch();
+    Angle roll = getRoll();
+
+    double pitchCalculation = pitchController.calculate(pitch.in(Degrees), 0);
+    double rollCalculation = rollController.calculate(roll.in(Degrees), 0);
+
+    return new ChassisSpeeds(pitchCalculation, rollCalculation, 0);
+  }
+
+  default ChassisSpeeds withAntiTipping(ChassisSpeeds driveSpeeds) {
+    ChassisSpeeds antiTippingSpeeds = getAntiTippingSpeeds();
+    double vxNew = antiTippingSpeeds.vxMetersPerSecond + driveSpeeds.vxMetersPerSecond;
+    double vyNew = antiTippingSpeeds.vyMetersPerSecond + driveSpeeds.vyMetersPerSecond;
+    double omegaNew = antiTippingSpeeds.omegaRadiansPerSecond + driveSpeeds.omegaRadiansPerSecond;
+
+    return new ChassisSpeeds(vxNew, vyNew, omegaNew);
+  }
 }
