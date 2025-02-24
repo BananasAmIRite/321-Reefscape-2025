@@ -81,7 +81,7 @@ public class DrivetrainSim implements SwerveDrive {
 
     // A field2d widget for debugging
     field2d = new Field2d();
-    SmartDashboard.putData("simulation field", field2d);
+    SmartDashboard.putData("Drivetrain Pose Field", field2d);
 
     this.reefPoseEstimator =
         new SwerveDrivePoseEstimator(
@@ -295,6 +295,16 @@ public class DrivetrainSim implements SwerveDrive {
   @Override
   public Rotation2d getHeading() {
     return simulatedDrive.getDriveTrainSimulation().getGyroSimulation().getGyroReading();
+  }
+
+  @Logged(name = "Robot x-speeds")
+  public double getRobotXSpeeds() {
+    return getChassisSpeeds().vxMetersPerSecond;
+  }
+
+  @Logged(name = "Robot y-speeds")
+  public double getRobotYSpeeds() {
+    return getChassisSpeeds().vyMetersPerSecond;
   }
 
   @Override

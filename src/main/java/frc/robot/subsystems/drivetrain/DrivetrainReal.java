@@ -34,6 +34,8 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.util.MyAlliance;
 import java.util.function.DoubleSupplier;
@@ -70,6 +72,8 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
 
   private Pose2d alignmentSetpoint = Pose2d.kZero;
 
+  private Field2d robotField2d = new Field2d();
+
   public DrivetrainReal(
       SwerveDrivetrainConstants drivetrainConstants, SwerveModuleConstants<?, ?, ?>... modules) {
     // create CTRE Swervedrivetrain
@@ -81,6 +85,8 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
     this.reefPoseEstimator =
         new SwerveDrivePoseEstimator(
             getKinematics(), getHeading(), getModulePositions(), getPose());
+
+    SmartDashboard.putData("Drivetrain Pose Field", robotField2d);
   }
 
   @Override
@@ -328,6 +334,21 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
   @Override
   public Rotation2d getHeading() {
     return new Rotation2d(super.getPigeon2().getYaw().getValue().in(Radians));
+  }
+
+  @Logged(name = "Robot x-speeds")
+  public double getRobotXSpeeds() {
+    return getChassisSpeeds().vxMetersPerSecond;
+  }
+
+  @Logged(name = "Robot y-speeds")
+  public double getRobotYSpeeds() {
+    return getChassisSpeeds().vyMetersPerSecond;
+  }
+
+  @Logged(name = "Robot Field 2d")
+  public Field2d robotField2d() {
+    return robotField2d;
   }
 
   @Override
