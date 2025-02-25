@@ -575,7 +575,7 @@
             },
             {
               "title": "Robot Odometry Field",
-              "x": 512.0,
+              "x": 576.0,
               "y": 320.0,
               "width": 512.0,
               "height": 384.0,
@@ -639,31 +639,51 @@
               }
             },
             {
-              "title": "Robot x speed",
+              "title": "Robot x-speeds",
               "x": 1152.0,
-              "y": 384.0,
+              "y": 320.0,
               "width": 192.0,
               "height": 128.0,
               "type": "Text Display",
               "properties": {
-                "topic": "/SmartDashboard/Robot x speed",
+                "topic": "Robot/RobotContainer/drivetrain/Robot x-speeds",
                 "period": 0.06,
                 "data_type": "double",
                 "show_submit_button": false
               }
             },
             {
-              "title": "Robot y speed",
+              "title": "Robot y-speeds",
               "x": 1152.0,
-              "y": 512.0,
+              "y": 448.0,
               "width": 192.0,
               "height": 128.0,
               "type": "Text Display",
               "properties": {
-                "topic": "/SmartDashboard/Robot y speed",
+                "topic": "Robot/RobotContainer/drivetrain/Robot y-speeds",
                 "period": 0.06,
                 "data_type": "double",
                 "show_submit_button": false
+              }
+            },
+            {
+              "title": "Drivetrain Pose Field",
+              "x": 64.0,
+              "y": 320.0,
+              "width": 512.0,
+              "height": 384.0,
+              "type": "Field",
+              "properties": {
+                "topic": "/SmartDashboard/Drivetrain Pose Field",
+                "period": 0.06,
+                "field_game": "Reefscape",
+                "robot_width": 0.85,
+                "robot_length": 0.85,
+                "show_other_objects": true,
+                "show_trajectories": true,
+                "field_rotation": 0.0,
+                "robot_color": 4294198070,
+                "trajectory_color": 4294967295
               }
             }
           ]
