@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 public class ClimbTest extends SubsystemBase {
   private SparkMax climbMotor = new SparkMax(48, MotorType.kBrushless);
 
-  private Servo lockServo = new Servo(2);
+  private Servo lockServo = new Servo(0);
 
   public ClimbTest() {
     climbMotor.configure( // configures two spark motors

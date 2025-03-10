@@ -19,7 +19,7 @@ import java.util.function.DoubleSupplier;
  */
 
 public class LedsConstants {
-  public static final int kPort = 0;
+  public static final int kPort = 5;
   public static final int kLength = 30;
   public static final Time kBlinkSpeed = Seconds.of(0.3);
   public static final Color kAlgaeColor = new Color(133, 226, 203);
