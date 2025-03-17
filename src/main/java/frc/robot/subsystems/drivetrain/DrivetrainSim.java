@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.Seconds;
 
 import com.pathplanner.lib.util.DriveFeedforwards;
 import edu.wpi.first.epilogue.Logged;
@@ -20,6 +21,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -163,17 +165,24 @@ public class DrivetrainSim implements SwerveDrive {
   }
 
   @Override
-  public void driveToFieldPose(Pose2d pose) {
+  public void driveToFieldPose(Pose2d pose, Pose2d currentPose) {
     if (pose == null) return;
 
     ChassisSpeeds targetSpeeds =
         new ChassisSpeeds(
-            xPoseController.calculate(getPose().getX(), pose.getX()),
-            yPoseController.calculate(getPose().getY(), pose.getY()),
+            xPoseController.calculate(currentPose.getX(), pose.getX()),
+            yPoseController.calculate(currentPose.getY(), pose.getY()),
             thetaController.calculate(
-                getPose().getRotation().getRadians(), pose.getRotation().getRadians()));
+                currentPose.getRotation().getRadians(), pose.getRotation().getRadians()));
 
-    if (atPoseSetpoint()) targetSpeeds = new ChassisSpeeds();
+    if (currentPose.getTranslation().getDistance(alignmentSetpoint.getTranslation())
+        < DrivetrainConstants.kAlignmentSetpointTranslationTolerance.in(Meters))
+      targetSpeeds = new ChassisSpeeds(0, 0, targetSpeeds.omegaRadiansPerSecond);
+
+    if (Math.abs(currentPose.getRotation().minus(alignmentSetpoint.getRotation()).getDegrees())
+        < DrivetrainConstants.kAlignmentSetpointRotationTolerance.in(Degrees))
+      targetSpeeds =
+          new ChassisSpeeds(targetSpeeds.vxMetersPerSecond, targetSpeeds.vyMetersPerSecond, 0);
 
     simulatedDrive.runChassisSpeeds(targetSpeeds, Translation2d.kZero, true, false);
   }
@@ -267,21 +276,39 @@ public class DrivetrainSim implements SwerveDrive {
     return alignmentSetpoint;
   }
 
+  private double lastVisionTimestamp = -1;
+  private double lastReefVisionTimestamp = -1;
+
   @Override
   public void addVisionMeasurement(Pose2d visionRobotPose, double timeStampSeconds) {
     simulatedDrive.addVisionEstimation(visionRobotPose, timeStampSeconds);
+    lastVisionTimestamp = timeStampSeconds;
   }
 
   @Override
   public void addVisionMeasurement(
       Pose2d visionRobotPose, double timeStampSeconds, Matrix<N3, N1> standardDeviations) {
     simulatedDrive.addVisionEstimation(visionRobotPose, timeStampSeconds, standardDeviations);
+    lastVisionTimestamp = timeStampSeconds;
+  }
+
+  @Override
+  public boolean isPoseUpdated() {
+    return (Timer.getFPGATimestamp() - lastVisionTimestamp)
+        < DrivetrainConstants.kVisionTimeout.in(Seconds);
   }
 
   @Override
   public void addReefVisionMeasurement(
       Pose2d visionRobotPose, double timeStampSeconds, Matrix<N3, N1> standardDeviations) {
     reefPoseEstimator.addVisionMeasurement(visionRobotPose, timeStampSeconds, standardDeviations);
+    lastReefVisionTimestamp = timeStampSeconds;
+  }
+
+  @Override
+  public boolean isReefVisionUpdated() {
+    return (Timer.getFPGATimestamp() - lastReefVisionTimestamp)
+        < DrivetrainConstants.kVisionTimeout.in(Seconds);
   }
 
   @Override

@@ -153,23 +153,25 @@ public interface SwerveDrive extends Subsystem {
   }
 
   // field relative auto drive w/ external pid controllers
-  void driveToFieldPose(Pose2d pose);
+  void driveToFieldPose(Pose2d pose, Pose2d currentPose);
 
-  default Command driveToFieldPose(Supplier<Pose2d> pose) {
+  default Command driveToFieldPose(Supplier<Pose2d> pose, Supplier<Pose2d> currentPose) {
     return runOnce(
             () -> {
               ChassisSpeeds speeds =
                   ChassisSpeeds.fromRobotRelativeSpeeds(
-                      getChassisSpeeds(), getPose().getRotation());
+                      getChassisSpeeds(), currentPose.get().getRotation());
 
-              xPoseController.reset(getPose().getTranslation().getX(), speeds.vxMetersPerSecond);
+              xPoseController.reset(
+                  currentPose.get().getTranslation().getX(), speeds.vxMetersPerSecond);
 
-              yPoseController.reset(getPose().getTranslation().getY(), speeds.vyMetersPerSecond);
+              yPoseController.reset(
+                  currentPose.get().getTranslation().getY(), speeds.vyMetersPerSecond);
 
               thetaController.reset(
-                  getPose().getRotation().getRadians(), speeds.omegaRadiansPerSecond);
+                  currentPose.get().getRotation().getRadians(), speeds.omegaRadiansPerSecond);
             })
-        .andThen(run(() -> driveToFieldPose(pose.get())));
+        .andThen(run(() -> driveToFieldPose(pose.get(), currentPose.get())));
   }
 
   void resetPose(Pose2d pose);
@@ -185,6 +187,12 @@ public interface SwerveDrive extends Subsystem {
   Pose2d getPose();
 
   Pose2d getReefVisionPose();
+
+  // whether or not the pose has been updated by vision in the last couple of loops
+  boolean isPoseUpdated();
+
+  // whether or not the reefpose has been updated by vision in the last couple of loops
+  boolean isReefVisionUpdated();
 
   ChassisSpeeds getChassisSpeeds();
 

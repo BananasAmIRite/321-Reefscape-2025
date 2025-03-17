@@ -119,7 +119,8 @@ public class ProcessorAlign {
           final Pose2d target = processorPoses.get(getNearestProcessorID(swerveDrive.getPose()));
           swerveDrive.setAlignmentSetpoint(target);
           return target;
-        });
+        },
+        swerveDrive::getPose);
   }
 
   /** Maintain translational driving while rotating toward the nearest processor tag */

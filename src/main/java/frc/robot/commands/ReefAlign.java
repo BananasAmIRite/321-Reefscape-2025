@@ -182,7 +182,9 @@ public class ReefAlign {
   }
 
   public static Command alignToReef(
-      SwerveDrive swerveDrive, Supplier<ReefPosition> targetReefPosition) {
+      SwerveDrive swerveDrive,
+      Supplier<ReefPosition> targetReefPosition,
+      Supplier<Pose2d> currentPose) {
     return Commands.runOnce(() -> Leds.getInstance().isReefAligning = true)
         .andThen(
             swerveDrive.driveToFieldPose(
@@ -196,12 +198,15 @@ public class ReefAlign {
                       };
                   swerveDrive.setAlignmentSetpoint(target);
                   return target;
-                }))
+                },
+                currentPose))
         .finallyDo(() -> Leds.getInstance().isReefAligning = false);
   }
 
   public static Command alignToTag(
-      SwerveDrive swerveDrive, Supplier<ReefPosition> targetReefPosition) {
+      SwerveDrive swerveDrive,
+      Supplier<ReefPosition> targetReefPosition,
+      Supplier<Pose2d> currentPose) {
     return swerveDrive.driveToFieldPose(
         () -> {
           Pose2d target =
@@ -223,10 +228,11 @@ public class ReefAlign {
           swerveDrive.setAlignmentSetpoint(newTarget);
 
           return newTarget;
-        });
+        },
+        currentPose);
   }
 
-  public static Command tuneAlignment(SwerveDrive swerveDrive) {
+  public static Command tuneAlignment(SwerveDrive swerveDrive, Supplier<Pose2d> currentPose) {
     TunableConstant depth = new TunableConstant("/ReefAlign/Depth", kReefDistance.in(Inch));
     TunableConstant side = new TunableConstant("/ReefAlign/Side", kLeftAlignDistance.in(Inch));
 
@@ -239,7 +245,8 @@ public class ReefAlign {
                           Inches.of(depth.get()), Inches.of(side.get()), kReefAlignmentRotation));
           swerveDrive.setAlignmentSetpoint(pose);
           return pose;
-        });
+        },
+        currentPose);
   }
 
   /** Maintain translational driving while rotating toward the nearest reef tag */
@@ -265,5 +272,9 @@ public class ReefAlign {
             drive.getPose().getX() - centerPos.getX(), drive.getPose().getY() - centerPos.getY());
 
     return deadbandDistance < deadband.in(Meters);
+  }
+
+  public static Pose2d getBestAlignmentPose(SwerveDrive drive) {
+    return drive.isReefVisionUpdated() ? drive.getReefVisionPose() : drive.getPose();
   }
 }

@@ -150,17 +150,20 @@ public class StationAlign {
   /** Drives to align against the center of the nearest station, no manual driving */
   public static Command goToNearestCenterAlign(SwerveDrive swerveDrive) {
     return swerveDrive.driveToFieldPose(
-        () -> getNearestCenterAlign(getNearestStationID(swerveDrive.getPose())));
+        () -> getNearestCenterAlign(getNearestStationID(swerveDrive.getPose())),
+        swerveDrive::getPose);
   }
 
   public static Command goToNearestRightAlign(SwerveDrive swerveDrive) {
     return swerveDrive.driveToFieldPose(
-        () -> getNearestRightAlign(getNearestStationID(swerveDrive.getPose())));
+        () -> getNearestRightAlign(getNearestStationID(swerveDrive.getPose())),
+        swerveDrive::getPose);
   }
 
   public static Command goToNearestLeftAlign(SwerveDrive swerveDrive) {
     return swerveDrive.driveToFieldPose(
-        () -> getNearestLeftAlign(getNearestStationID(swerveDrive.getPose())));
+        () -> getNearestLeftAlign(getNearestStationID(swerveDrive.getPose())),
+        swerveDrive::getPose);
   }
 
   /** Maintain translational driving while rotating toward the nearest station tag */

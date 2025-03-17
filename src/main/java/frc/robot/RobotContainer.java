@@ -344,7 +344,10 @@ public class RobotContainer {
                         .andThen(
                             // when we get close enough, align to reef, but only while we're
                             // close enough
-                            ReefAlign.alignToReef(drivetrain, () -> queuedReefPosition)
+                            ReefAlign.alignToReef(
+                                    drivetrain,
+                                    () -> queuedReefPosition,
+                                    () -> ReefAlign.getBestAlignmentPose(drivetrain))
                                 .onlyWhile(
                                     () ->
                                         ReefAlign.isWithinReefRange(

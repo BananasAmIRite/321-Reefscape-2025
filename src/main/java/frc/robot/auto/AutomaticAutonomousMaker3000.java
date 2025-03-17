@@ -293,7 +293,9 @@ public class AutomaticAutonomousMaker3000 {
                 .asProxy())
         .andThen(
             ReefAlign.alignToReef(
-                    drive, () -> pole == Pole.LEFTPOLE ? ReefPosition.LEFT : ReefPosition.RIGHT)
+                    drive,
+                    () -> pole == Pole.LEFTPOLE ? ReefPosition.LEFT : ReefPosition.RIGHT,
+                    () -> ReefAlign.getBestAlignmentPose(drive))
                 .asProxy()
                 .alongWith(
                     coralSuperstructure.goToSetpointPID(
@@ -305,7 +307,9 @@ public class AutomaticAutonomousMaker3000 {
                 .withTimeout(2.5))
         .andThen(
             ReefAlign.alignToReef(
-                    drive, () -> pole == Pole.LEFTPOLE ? ReefPosition.LEFT : ReefPosition.RIGHT)
+                    drive,
+                    () -> pole == Pole.LEFTPOLE ? ReefPosition.LEFT : ReefPosition.RIGHT,
+                    () -> ReefAlign.getBestAlignmentPose(drive))
                 .asProxy()
                 .alongWith(coralSuperstructure.goToSetpointProfiled(() -> setpoint).asProxy())
                 .asProxy()

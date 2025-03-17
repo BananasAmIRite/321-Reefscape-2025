@@ -31,6 +31,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -194,16 +195,14 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
   }
 
   @Override
-  public void driveToFieldPose(Pose2d pose) {
+  public void driveToFieldPose(Pose2d pose, Pose2d currentPose) {
     ChassisSpeeds targetSpeeds =
         ChassisSpeeds.discretize(
-            xPoseController.calculate(getPose().getX(), pose.getX()),
-            yPoseController.calculate(getPose().getY(), pose.getY()),
+            xPoseController.calculate(currentPose.getX(), pose.getX()),
+            yPoseController.calculate(currentPose.getY(), pose.getY()),
             thetaController.calculate(
-                getPose().getRotation().getRadians(), pose.getRotation().getRadians()),
+                currentPose.getRotation().getRadians(), pose.getRotation().getRadians()),
             DrivetrainConstants.kLoopDt.in(Seconds));
-
-    final var currentPose = getPose();
 
     if (currentPose.getTranslation().getDistance(alignmentSetpoint.getTranslation())
         < DrivetrainConstants.kAlignmentSetpointTranslationTolerance.in(Meters))
@@ -308,10 +307,20 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
     return alignmentSetpoint;
   }
 
+  private double lastVisionTimestamp = -1;
+  private double lastReefVisionTimestamp = -1;
+
   @Override
   public void addReefVisionMeasurement(
       Pose2d visionRobotPose, double timeStampSeconds, Matrix<N3, N1> standardDeviations) {
     reefPoseEstimator.addVisionMeasurement(visionRobotPose, timeStampSeconds, standardDeviations);
+    lastVisionTimestamp = timeStampSeconds;
+  }
+
+  @Override
+  public boolean isReefVisionUpdated() {
+    return (Timer.getFPGATimestamp() - lastReefVisionTimestamp)
+        < DrivetrainConstants.kVisionTimeout.in(Seconds);
   }
 
   @Override
@@ -319,6 +328,13 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
       Pose2d visionRobotPose, double timeStampSeconds, Matrix<N3, N1> standardDeviations) {
     super.addVisionMeasurement(
         visionRobotPose, Utils.fpgaToCurrentTime(timeStampSeconds), standardDeviations);
+    lastReefVisionTimestamp = timeStampSeconds;
+  }
+
+  @Override
+  public boolean isPoseUpdated() {
+    return (Timer.getFPGATimestamp() - lastVisionTimestamp)
+        < DrivetrainConstants.kVisionTimeout.in(Seconds);
   }
 
   @NotLogged private Alliance lastAlliance;

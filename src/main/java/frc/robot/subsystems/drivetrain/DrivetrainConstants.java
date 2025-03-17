@@ -54,4 +54,7 @@ public class DrivetrainConstants {
 
   public static final Distance kAlignmentSetpointTranslationTolerance = Meters.of(0.02);
   public static final Angle kAlignmentSetpointRotationTolerance = Degrees.of(2.0);
+
+  // vision estimates
+  public static final Time kVisionTimeout = Seconds.of(0.1); // TODO: tune
 }
