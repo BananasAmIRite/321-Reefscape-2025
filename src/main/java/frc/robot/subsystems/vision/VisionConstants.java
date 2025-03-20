@@ -18,7 +18,7 @@ import org.photonvision.simulation.SimCameraProperties;
 
 public class VisionConstants {
   // TODO: tune more thoroughly
-  public static final double kTranslationStdDevCoeff = 1e-1;
+  public static final double kTranslationStdDevCoeff = 5e-2;
   public static final double kRotationStdDevCoeff = 1e-1;
 
   public static record CameraCalibration(

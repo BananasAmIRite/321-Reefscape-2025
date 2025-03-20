@@ -197,26 +197,24 @@ public class DrivetrainReal extends SwerveDrivetrain<TalonFX, TalonFX, CANcoder>
   }
 
   @Override
-  public void driveToFieldPose(Pose2d pose) {
+  public void driveToFieldPose(Pose2d pose, Pose2d currentPose) {
     ChassisSpeeds targetSpeeds =
         DriverStation.isAutonomous()
             ? ChassisSpeeds.discretize(
-                xPoseController.calculate(getPose().getX(), pose.getX())
+                xPoseController.calculate(currentPose.getX(), pose.getX())
                     + xPoseController.getSetpoint().velocity,
-                yPoseController.calculate(getPose().getY(), pose.getY())
+                yPoseController.calculate(currentPose.getY(), pose.getY())
                     + yPoseController.getSetpoint().velocity,
                 thetaController.calculate(
-                        getPose().getRotation().getRadians(), pose.getRotation().getRadians())
+                        currentPose.getRotation().getRadians(), pose.getRotation().getRadians())
                     + thetaController.getSetpoint().velocity,
                 RobotConstants.kRobotLoopPeriod.in(Seconds))
             : ChassisSpeeds.discretize(
-                xPoseController.calculate(getPose().getX(), pose.getX()),
-                yPoseController.calculate(getPose().getY(), pose.getY()),
+                xPoseController.calculate(currentPose.getX(), pose.getX()),
+                yPoseController.calculate(currentPose.getY(), pose.getY()),
                 thetaController.calculate(
-                    getPose().getRotation().getRadians(), pose.getRotation().getRadians()),
+                    currentPose.getRotation().getRadians(), pose.getRotation().getRadians()),
                 RobotConstants.kRobotLoopPeriod.in(Seconds));
-
-    final var currentPose = getPose();
 
     if (currentPose.getTranslation().getDistance(alignmentSetpoint.pose().getTranslation())
         < DrivetrainConstants.kAlignmentSetpointTranslationTolerance.in(Meters))

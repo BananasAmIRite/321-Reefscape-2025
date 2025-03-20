@@ -211,7 +211,8 @@ public class ReefAlign {
                       };
 
                   return new AlignmentSetpoint(target, true);
-                }))
+                },
+                swerveDrive::getReefVisionPose))
         .finallyDo(() -> Leds.getInstance().isReefAligning = false);
   }
 

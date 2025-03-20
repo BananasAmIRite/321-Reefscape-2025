@@ -169,33 +169,30 @@ public class DrivetrainSim implements SwerveDrive {
   }
 
   @Override
-  public void driveToFieldPose(Pose2d pose) {
+  public void driveToFieldPose(Pose2d pose, Pose2d robotPose) {
     if (pose == null) return;
 
     ChassisSpeeds targetSpeeds =
         DriverStation.isAutonomous()
             ? new ChassisSpeeds(
-                xPoseController.calculate(getPose().getX(), pose.getX())
+                xPoseController.calculate(robotPose.getX(), pose.getX())
                     + xPoseController.getSetpoint().velocity,
-                yPoseController.calculate(getPose().getY(), pose.getY())
+                yPoseController.calculate(robotPose.getY(), pose.getY())
                     + yPoseController.getSetpoint().velocity,
                 thetaController.calculate(
-                        getPose().getRotation().getRadians(), pose.getRotation().getRadians())
+                        robotPose.getRotation().getRadians(), pose.getRotation().getRadians())
                     + thetaController.getSetpoint().velocity)
             : new ChassisSpeeds(
-                xPoseController.calculate(getPose().getX(), pose.getX()),
-                yPoseController.calculate(getPose().getY(), pose.getY()),
+                xPoseController.calculate(robotPose.getX(), pose.getX()),
+                yPoseController.calculate(robotPose.getY(), pose.getY()),
                 thetaController.calculate(
-                    getPose().getRotation().getRadians(), pose.getRotation().getRadians()));
+                    robotPose.getRotation().getRadians(), pose.getRotation().getRadians()));
 
-    final Pose2d currentPose = getPose();
-
-    if (currentPose.getTranslation().getDistance(alignmentSetpoint.pose().getTranslation())
+    if (robotPose.getTranslation().getDistance(alignmentSetpoint.pose().getTranslation())
         < DrivetrainConstants.kAlignmentSetpointTranslationTolerance.in(Meters))
       targetSpeeds = new ChassisSpeeds(0, 0, targetSpeeds.omegaRadiansPerSecond);
 
-    if (Math.abs(
-            currentPose.getRotation().minus(alignmentSetpoint.pose().getRotation()).getDegrees())
+    if (Math.abs(robotPose.getRotation().minus(alignmentSetpoint.pose().getRotation()).getDegrees())
         < DrivetrainConstants.kAlignmentSetpointRotationTolerance.in(Degrees))
       targetSpeeds =
           new ChassisSpeeds(targetSpeeds.vxMetersPerSecond, targetSpeeds.vyMetersPerSecond, 0);
