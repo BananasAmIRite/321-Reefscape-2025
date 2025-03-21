@@ -197,7 +197,10 @@ public class AutomaticAutonomousMaker3000 {
     pathError = "";
     try {
       Command auto =
-          Commands.waitUntil(() -> coralSuperstructure.getElevator().elevatorIsHomed())
+          coralSuperstructure
+              .getElevator()
+              .homeEncoder()
+              .onlyIf(() -> !coralSuperstructure.getElevator().elevatorIsHomed())
               .withTimeout(2);
 
       List<PathPlannerPath> paths = new ArrayList<>();
@@ -356,7 +359,7 @@ public class AutomaticAutonomousMaker3000 {
                     drive, () -> pole == Pole.LEFTPOLE ? ReefPosition.LEFT : ReefPosition.RIGHT)
                 .alongWith(coralSuperstructure.goToSetpointProfiled(() -> setpoint))
                 .withDeadline(
-                    Commands.waitSeconds(1)
+                    Commands.waitSeconds(0)
                         .andThen(
                             coralSuperstructure
                                 .outtakeCoral()

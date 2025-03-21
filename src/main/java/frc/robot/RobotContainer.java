@@ -3,6 +3,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -115,7 +116,9 @@ public class RobotContainer {
                   : DrivetrainConstants.kMaxLinearVelocity.in(MetersPerSecond));
 
   private DoubleSupplier driverTurn =
-      () -> -MathUtil.applyDeadband(driver.getRightX(), DrivetrainConstants.kRotationDeadband) * 5;
+      () ->
+          -MathUtil.applyDeadband(driver.getRightX(), DrivetrainConstants.kRotationDeadband)
+              * DrivetrainConstants.kMaxAngularVelocity.in(RadiansPerSecond);
 
   // robot queued states
   private ReefPosition queuedReefPosition = ReefPosition.RIGHT;
@@ -159,6 +162,7 @@ public class RobotContainer {
     // home everything on robot start
     RobotModeTriggers.disabled()
         .negate()
+        .and(RobotModeTriggers.teleop())
         .onTrue(elevator.homeEncoder().onlyIf(() -> !elevator.elevatorIsHomed()));
 
     RobotModeTriggers.disabled().negate().onTrue(HomingCommands.homeClimber(climber));
@@ -539,6 +543,7 @@ public class RobotContainer {
     driver
         .rightBumper()
         .and(isAlgaeSetpoint)
+        .and(() -> !coralSuperstructure.hasCoral())
         .whileTrue(
             coralSuperstructure
                 .goToSetpointPID(() -> queuedSetpoint)
