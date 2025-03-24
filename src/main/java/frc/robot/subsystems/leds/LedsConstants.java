@@ -21,7 +21,7 @@ public class LedsConstants {
 
   // DRIVING PATTERNS
   // default mode - meteor yellow. TODO: add meteor pattern or something cool like that
-  public static final LEDPattern kDefault = LEDPattern.kOff;
+  public static final LEDPattern kDefault = LEDPattern.solid(Color.kWhite).breathe(Seconds.of(5));
 
   // climb mode - solid blue
   public static final LEDPattern kClimbing = LEDPattern.solid(Color.kBlue);
@@ -31,6 +31,8 @@ public class LedsConstants {
 
   // when the robot has a pose to align to - solid yellow
   public static final LEDPattern kReadyToAlign = LEDPattern.solid(Color.kYellow);
+
+  public static final LEDPattern kReefAligned = LEDPattern.solid(Color.kGreen).blink(kBlinkSpeed);
 
   // when the robot is aligning to a pose - progress bar
   public static final LEDPattern kReefAligning(DoubleSupplier supp) {

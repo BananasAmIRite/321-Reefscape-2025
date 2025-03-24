@@ -11,11 +11,13 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.leds.Leds;
 import frc.robot.util.TunableConstant;
 import java.util.function.Supplier;
 
-// coral end effector subsystem
+// coral end effector subsystem (now a coral / algae end effector mechanism)
 @Logged
 public class CoralEndEffector extends SubsystemBase {
   private CoralEndEffectorInputs inputs;
@@ -69,12 +71,16 @@ public class CoralEndEffector extends SubsystemBase {
 
   // shortcut to intake coral
   public Command intakeCoral() {
-    return runAtVelocity(() -> CoralEndEffectorConstants.kIntakeRPM);
+    return Commands.runOnce(() -> Leds.getInstance().isIntaking = true)
+        .andThen(runAtVelocity(() -> CoralEndEffectorConstants.kCoralIntakeRPM))
+        .finallyDo(() -> Leds.getInstance().isIntaking = false);
   }
 
   // shortcut to outtake coral
   public Command outtakeCoral() {
-    return runAtVelocity(() -> CoralEndEffectorConstants.kOuttakeRPM);
+    return Commands.runOnce(() -> Leds.getInstance().isOuttaking = true)
+        .andThen(runAtVelocity(() -> CoralEndEffectorConstants.kCoralOuttakeRPM))
+        .finallyDo(() -> Leds.getInstance().isOuttaking = false);
   }
 
   public Command runVolts(Supplier<Voltage> voltage) {
@@ -85,22 +91,12 @@ public class CoralEndEffector extends SubsystemBase {
     return inputs.hasCoral;
   }
 
-  public boolean isIntaking() {
-    return inputs.velocity.isNear(
-        CoralEndEffectorConstants.kIntakeRPM, CoralEndEffectorConstants.kRPMTolerance);
-  }
-
-  public boolean isOuttaking() {
-    return inputs.velocity.isNear(
-        CoralEndEffectorConstants.kOuttakeRPM, CoralEndEffectorConstants.kRPMTolerance);
-  }
-
   // stalls coral if we have a coral; this should be the default command
   public Command stallCoralIfDetected() {
     return runAtVelocity(
         () -> {
           if (hasCoral()) {
-            return CoralEndEffectorConstants.kStallRPM;
+            return CoralEndEffectorConstants.kCoralStallRPM;
           }
           return RPM.of(0);
         });

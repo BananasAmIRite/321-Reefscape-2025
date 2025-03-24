@@ -11,7 +11,7 @@ import edu.wpi.first.units.measure.Distance;
 public class CoralEndEffectorConstants {
   // Motor configuration
   public static final int kMotorPort = 16;
-  public static final int kTimeOfFlightId = 21;
+  public static final int kCoralSensorId = 21;
   public static final boolean kInvertedMotor = true;
   public static final int kCurrentLimit = 40;
 
@@ -20,9 +20,9 @@ public class CoralEndEffectorConstants {
   public static final double kGearing = 1;
 
   // Setpoints
-  public static final AngularVelocity kIntakeRPM = RPM.of(3000);
-  public static final AngularVelocity kOuttakeRPM = RPM.of(-1000);
-  public static final AngularVelocity kStallRPM = RPM.of(1000);
+  public static final AngularVelocity kCoralIntakeRPM = RPM.of(3000);
+  public static final AngularVelocity kCoralOuttakeRPM = RPM.of(-1500);
+  public static final AngularVelocity kCoralStallRPM = RPM.of(500);
   public static final AngularVelocity kAlgaeKnockRPM = RPM.of(-3000);
 
   // Tuned constants

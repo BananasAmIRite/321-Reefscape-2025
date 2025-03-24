@@ -9,6 +9,11 @@
       "visible": true
     }
   },
+  "System Joysticks": {
+    "window": {
+      "enabled": false
+    }
+  },
   "keyboardJoysticks": [
     {
       "axisConfig": [
@@ -38,8 +43,8 @@
       "buttonKeys": [
         90,
         88,
-        80,
-        48,
+        67,
+        86,
         77,
         76,
         -1,

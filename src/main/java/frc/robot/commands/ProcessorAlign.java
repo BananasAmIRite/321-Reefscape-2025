@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotConstants;
 import frc.robot.subsystems.drivetrain.SwerveDrive;
+import frc.robot.subsystems.drivetrain.SwerveDrive.AlignmentSetpoint;
 import frc.robot.util.MyAlliance;
 import java.util.HashMap;
 import java.util.List;
@@ -117,8 +118,7 @@ public class ProcessorAlign {
     return swerveDrive.driveToFieldPose(
         () -> {
           final Pose2d target = processorPoses.get(getNearestProcessorID(swerveDrive.getPose()));
-          swerveDrive.setAlignmentSetpoint(target);
-          return target;
+          return new AlignmentSetpoint(target, true);
         },
         swerveDrive::getPose);
   }

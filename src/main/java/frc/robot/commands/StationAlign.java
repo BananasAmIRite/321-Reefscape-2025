@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.RobotConstants;
 import frc.robot.subsystems.drivetrain.SwerveDrive;
+import frc.robot.subsystems.drivetrain.SwerveDrive.AlignmentSetpoint;
 import frc.robot.util.MyAlliance;
 import java.util.HashMap;
 import java.util.List;
@@ -150,19 +151,25 @@ public class StationAlign {
   /** Drives to align against the center of the nearest station, no manual driving */
   public static Command goToNearestCenterAlign(SwerveDrive swerveDrive) {
     return swerveDrive.driveToFieldPose(
-        () -> getNearestCenterAlign(getNearestStationID(swerveDrive.getPose())),
+        () ->
+            new AlignmentSetpoint(
+                getNearestCenterAlign(getNearestStationID(swerveDrive.getPose())), true),
         swerveDrive::getPose);
   }
 
   public static Command goToNearestRightAlign(SwerveDrive swerveDrive) {
     return swerveDrive.driveToFieldPose(
-        () -> getNearestRightAlign(getNearestStationID(swerveDrive.getPose())),
+        () ->
+            new AlignmentSetpoint(
+                getNearestRightAlign(getNearestStationID(swerveDrive.getPose())), true),
         swerveDrive::getPose);
   }
 
   public static Command goToNearestLeftAlign(SwerveDrive swerveDrive) {
     return swerveDrive.driveToFieldPose(
-        () -> getNearestLeftAlign(getNearestStationID(swerveDrive.getPose())),
+        () ->
+            new AlignmentSetpoint(
+                getNearestLeftAlign(getNearestStationID(swerveDrive.getPose())), true),
         swerveDrive::getPose);
   }
 

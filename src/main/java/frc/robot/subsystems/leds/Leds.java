@@ -41,6 +41,8 @@ public class Leds extends SubsystemBase {
 
   public boolean isRotateAligning = false;
   public boolean isReefAligning = false;
+  public boolean isIntaking = false;
+  public boolean isOuttaking = false;
   public boolean isTagAligning = false;
 
   public Leds() {
