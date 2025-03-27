@@ -114,7 +114,9 @@ public class RobotContainer {
   private DoubleSupplier driverTurn =
       () ->
           -MathUtil.applyDeadband(driver.getRightX(), DrivetrainConstants.kRotationDeadband)
-              * DrivetrainConstants.kMaxAngularVelocity.in(RadiansPerSecond);
+              * (isSlowMode.getAsBoolean()
+                  ? 3
+                  : DrivetrainConstants.kMaxAngularVelocity.in(RadiansPerSecond));
 
   // robot queued states
   private ReefPosition queuedReefPosition = ReefPosition.RIGHT;
