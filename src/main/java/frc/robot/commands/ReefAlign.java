@@ -3,7 +3,6 @@ package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -50,7 +49,7 @@ public class ReefAlign {
   private static final Transform2d kLeftAlignTransform =
       new Transform2d(kReefDistance, kLeftAlignDistance, kReefAlignmentRotation);
   private static final Transform2d kCenterAlignTransform =
-      new Transform2d(kReefDistance, Meter.zero(), kReefAlignmentRotation);
+      new Transform2d(kReefDistance, Inches.of(-2.5), kReefAlignmentRotation);
   private static final Transform2d kRightAlignTransform =
       new Transform2d(kReefDistance, kRightAlignDistance, kReefAlignmentRotation);
 

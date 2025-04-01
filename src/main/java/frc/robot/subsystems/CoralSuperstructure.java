@@ -165,6 +165,7 @@ public class CoralSuperstructure {
     ALGAE_LOW(Meters.of(1), Degrees.of(40), CoralEndEffectorConstants.kAlgaeKnockRPM),
     ALGAE_HIGH(Meters.of(1.4), Degrees.of(40), CoralEndEffectorConstants.kAlgaeKnockRPM),
     PREALIGN(Meters.of(1.397), Degrees.of(120), RPM.of(0)),
+    KNOCK_ALGAE(Meters.of(1.397), Degrees.of(0), RPM.zero()),
     CLIMB(Meters.of(1.1), Degrees.of(0), RPM.of(0));
 
     private Distance elevatorHeight; // the height of the elevator to got
