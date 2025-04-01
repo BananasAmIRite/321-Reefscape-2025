@@ -102,6 +102,10 @@ public class CoralSuperstructure {
         .alongWith(endEffector.intakeCoral());
   }
 
+  public Command feedAlgae() {
+    return endEffector.intakeAlgae();
+  }
+
   public Command outtakeCoral(Supplier<CoralScorerSetpoint> setpoint) {
     return endEffector.outtakeCoral(setpoint);
   }
@@ -165,7 +169,8 @@ public class CoralSuperstructure {
     ALGAE_LOW(Meters.of(1), Degrees.of(40), CoralEndEffectorConstants.kAlgaeKnockRPM),
     ALGAE_HIGH(Meters.of(1.4), Degrees.of(40), CoralEndEffectorConstants.kAlgaeKnockRPM),
     PREALIGN(Meters.of(1.397), Degrees.of(120), RPM.of(0)),
-    CLIMB(Meters.of(1.1), Degrees.of(0), RPM.of(0));
+    CLIMB(Meters.of(1.1), Degrees.of(0), RPM.of(0)),
+    BARGE(Meters.of(2.08), Degrees.of(20), RPM.of(-2000));
 
     private Distance elevatorHeight; // the height of the elevator to got
     private Angle armAngle; // the angle the arm should go to

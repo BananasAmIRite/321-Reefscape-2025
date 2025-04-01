@@ -77,6 +77,12 @@ public class CoralEndEffector extends SubsystemBase {
         .finallyDo(() -> Leds.getInstance().isIntaking = false);
   }
 
+  public Command intakeAlgae() {
+    return Commands.runOnce(() -> Leds.getInstance().isIntaking = true)
+        .andThen(runAtVelocity(() -> CoralEndEffectorConstants.kAlgaeIntakeRPM))
+        .finallyDo(() -> Leds.getInstance().isIntaking = false);
+  }
+
   // shortcut to outtake coral
   public Command outtakeCoral(Supplier<CoralScorerSetpoint> setpoint) {
     return Commands.runOnce(() -> Leds.getInstance().isOuttaking = true)
@@ -92,12 +98,18 @@ public class CoralEndEffector extends SubsystemBase {
     return inputs.hasCoral;
   }
 
+  public boolean hasAlgae() {
+    return inputs.hasAlgae;
+  }
+
   // stalls coral if we have a coral; this should be the default command
-  public Command stallCoralIfDetected() {
+  public Command stallCoralOrAlgaeIfDetected() {
     return runAtVelocity(
         () -> {
           if (hasCoral()) {
             return CoralEndEffectorConstants.kCoralStallRPM;
+          } else if (hasAlgae()) {
+            return CoralEndEffectorConstants.kAlgaeStallRPM;
           }
           return RPM.of(0);
         });
